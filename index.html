@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024, initial-scale=1">
+<title>Ranking PC Simulator Members</title>
+<style>
+body {
+  background: #121212;
+  color: #f0f0f0;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+header {
+  text-align: center;
+  padding: 20px;
+  background: #1e1e1e;
+  border-bottom: 2px solid #333;
+}
+h1 { margin:0; font-size:2.5rem; }
+.subtitle { color:#bbb; font-size:1.2rem; }
+
+#tiers-container { margin:20px; background:#1e1e1e; padding:10px; border-radius:6px; }
+#tiers { display:flex; flex-direction:column; gap:20px; }
+
+.tier {
+  min-height:100px;
+  border:2px solid #444;
+  border-radius:4px;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  position:relative;
+  background:#1e1e1e;
+  padding-left:150px;
+}
+
+.tier .label {
+  position:absolute;
+  left:0; top:0;
+  width:150px; height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  font-size:1.5rem;
+  color:#fff;
+  border-right:2px solid #333;
+  text-align:center;
+}
+
+.tier[data-tier="S"] .label { background:#e74c3c; }
+.tier[data-tier="A"] .label { background:#e67e22; }
+.tier[data-tier="B"] .label { background:#f1c40f; color:#000; }
+.tier[data-tier="C"] .label { background:#2ecc71; }
+.tier[data-tier="D"] .label { background:#3498db; }
+
+#image-container {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:20px;
+  min-height:320px;
+}
+
+#image-container img {
+  max-width:300px;
+  max-height:300px;
+  width:auto;
+  height:auto;
+  border:2px solid #555;
+  border-radius:4px;
+  background:#222;
+  object-fit:contain;
+}
+
+#buttons {
+  display:flex;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:20px 0;
+}
+
+.button {
+  padding:10px 20px;
+  font-size:1rem;
+  font-weight:bold;
+  border:none;
+  border-radius:4px;
+  cursor:pointer;
+  color:#fff;
+}
+.button.s { background:#e74c3c; }
+.button.a { background:#e67e22; }
+.button.b { background:#f1c40f; color:#000; }
+.button.c { background:#2ecc71; }
+.button.d { background:#3498db; }
+</style>
+</head>
+<body>
+<header>
+<h1>Rank Other PC Simulator Discord Server's Members</h1>
+<p class="subtitle">Please don't rank yourself if you find it (free cornet)</p>
+</header>
+
+<main>
+<div id="tiers-container">
+  <div id="tiers">
+    <div class="tier" data-tier="S"><span class="label">AWESOME</span></div>
+    <div class="tier" data-tier="A"><span class="label">Nice Person</span></div>
+    <div class="tier" data-tier="B"><span class="label">Mehh</span></div>
+    <div class="tier" data-tier="C"><span class="label">STINKY (F)</span></div>
+    <div class="tier" data-tier="D"><span class="label">Who is this?</span></div>
+  </div>
+</div>
+
+<div id="image-container">
+  <img id="current-image" src="" alt="Member">
+</div>
+
+<div id="buttons">
+  <button class="button s" data-tier="S">AWESOME</button>
+  <button class="button a" data-tier="A">Nice Person</button>
+  <button class="button b" data-tier="B">Mehh</button>
+  <button class="button c" data-tier="C">STINKY (F)</button>
+  <button class="button d" data-tier="D">Who is this?</button>
+</div>
+</main>
+
+<script>
+const apiURL = "https://api.github.com/repos/moade771/OPEN-SOURCE-RANKING-LIST-/contents/Images";
+const currentImage = document.getElementById("current-image");
+const buttons = document.getElementById("buttons").querySelectorAll(".button");
+const tiers = document.querySelectorAll(".tier");
+
+let images = [];
+let index = 0;
+
+// Load images from GitHub
+fetch(apiURL)
+  .then(res => res.json())
+  .then(files => {
+    images = files.filter(f => f.type==="file" && /\.(jpg|jpeg|png)$/i.test(f.name))
+                  .map(f => f.download_url);
+    showNextImage();
+  }).catch(err => {
+    console.error(err);
+    images = ["https://via.placeholder.com/300?text=No+Image"];
+    showNextImage();
+  });
+
+// Preload next image and hide buttons during load
+function showNextImage(){
+  if(index < images.length){
+    buttons.forEach(b => b.style.visibility = "hidden"); // hide buttons
+
+    const nextImg = new Image();
+    nextImg.src = images[index];
+    nextImg.onload = () => {
+      currentImage.src = nextImg.src;
+      buttons.forEach(b => b.style.visibility = "visible"); // show buttons
+    };
+  } else {
+    currentImage.src = "";
+    alert("All images ranked!");
+  }
+}
+
+// Button click assigns image to tier
+buttons.forEach(btn => {
+  btn.addEventListener("click", ()=>{
+    if(index < images.length){
+      const tier = document.querySelector(`.tier[data-tier="${btn.dataset.tier}"]`);
+      const img = document.createElement("img");
+      img.src = images[index];
+      img.style.width = "120px"; // standard thumbnail
+      img.style.height = "auto";  // keep aspect ratio
+      img.style.margin="5px";
+      tier.appendChild(img);
+      index++;
+      showNextImage();
+    }
+  });
+});
+</script>
+</body>
+</html>
